@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const ScholarlySearch = () => {
+const Search = () => {
   // Sample dataset mimicking academic papers
   const sampleData = [
     {
@@ -146,7 +146,6 @@ const ScholarlySearch = () => {
     } else if (sortBy === "title") {
       filtered.sort((a, b) => a.title.localeCompare(b.title));
     }
-    // Default is "relevance" which keeps the original order
     
     setResults(filtered);
   };
@@ -163,14 +162,6 @@ const ScholarlySearch = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-blue-600 text-white p-4">
-        <div className="container mx-auto">
-          <h1 className="text-2xl font-bold">Scholarly Data Library</h1>
-          <p className="text-sm">A comprehensive research database demo</p>
-        </div>
-      </header>
-      
       {/* Main Content */}
       <main className="container mx-auto flex-grow p-4">
         {!selectedPaper ? (
@@ -360,16 +351,8 @@ const ScholarlySearch = () => {
           </div>
         )}
       </main>
-      
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white p-4">
-        <div className="container mx-auto text-center text-sm">
-          <p>Scholarly Data Library Demo - Created for client demonstration purposes</p>
-          <p className="mt-1 text-gray-400">All papers shown are sample data only</p>
-        </div>
-      </footer>
     </div>
   );
 };
 
-export default ScholarlySearch;
+export default Search;

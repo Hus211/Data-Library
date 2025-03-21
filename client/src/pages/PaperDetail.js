@@ -1,26 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
 
 const PaperDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
   const [paper, setPaper] = useState(null);
   const [relatedPapers, setRelatedPapers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    // Check if user is admin from localStorage
+    const checkAdmin = () => {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      setIsAdmin(userData?.role === 'admin');
+    };
+    
+    checkAdmin();
+    
     const fetchPaper = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`/papers/${id}`);
+        const res = await axios.get(`/api/papers/${id}`);
         setPaper(res.data);
         
         // Fetch related papers (papers with similar keywords)
-        const relatedRes = await axios.get('/papers');
+        const relatedRes = await axios.get('/api/papers');
         const filtered = relatedRes.data
           .filter(p => p._id !== id && p.keywords.some(k => res.data.keywords.includes(k)))
           .slice(0, 4);
@@ -39,7 +46,7 @@ const PaperDetail = () => {
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this paper?')) {
       try {
-        await axios.delete(`/papers/${id}`);
+        await axios.delete(`/api/papers/${id}`);
         navigate('/search');
       } catch (err) {
         setError(err.response?.data?.error || 'Failed to delete paper');
@@ -104,3 +111,68 @@ const PaperDetail = () => {
                 href={paper.url} 
                 target="_blank" 
                 rel="noopener noreferrer"
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              >
+                View Paper
+              </a>
+            )}
+            {isAdmin && (
+              <>
+                <Link 
+                  to={`/edit-paper/${paper._id}`}
+                  className="bg-blue-50 text-blue-600 border border-blue-200 px-4 py-2 rounded-md hover:bg-blue-100"
+                >
+                  Edit
+                </Link>
+                <button 
+                  onClick={handleDelete}
+                  className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-md hover:bg-red-100"
+                >
+                  Delete
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+        
+        <div className="mb-8">
+          <h2 className="text-xl font-medium mb-2">Abstract</h2>
+          <p className="text-gray-700">{paper.abstract}</p>
+        </div>
+        
+        <div className="mb-8">
+          <h2 className="text-xl font-medium mb-2">Keywords</h2>
+          <div className="flex flex-wrap gap-2">
+            {paper.keywords.map((keyword, idx) => (
+              <span key={idx} className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
+                {keyword}
+              </span>
+            ))}
+          </div>
+        </div>
+        
+        {relatedPapers.length > 0 && (
+          <div>
+            <h2 className="text-xl font-medium mb-2">Related Papers</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {relatedPapers.map(relatedPaper => (
+                <Link 
+                  key={relatedPaper._id}
+                  to={`/papers/${relatedPaper._id}`}
+                  className="p-4 border rounded-lg hover:bg-blue-50"
+                >
+                  <h3 className="font-medium text-blue-600">{relatedPaper.title}</h3>
+                  <p className="text-sm text-gray-500">
+                    {relatedPaper.authors.join(', ')} - {relatedPaper.year}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default PaperDetail;
